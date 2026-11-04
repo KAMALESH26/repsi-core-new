@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Bell, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/language-selector";
@@ -16,15 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { logoutSession, getAuthUser } from "@/lib/auth";
 import { useParams } from "next/navigation";
@@ -33,6 +24,8 @@ import { api } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import { accountPathForRole, NOTIFICATIONS_CHANGED_EVENT } from "@/lib/workspace";
 import { clearStorageKeepingLanguage } from "@/lib/i18n/persist";
+import { NavigationControls } from "@/components/ui/navigation-controls";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // ─── User Menu ────────────────────────────────────────────────────────────────
 
@@ -183,8 +176,12 @@ export function Topbar({ title, breadcrumbs, mobileMenuButton }: TopbarProps) {
 
   return (
     <header className="flex h-14 items-center justify-between gap-2 sm:gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-3 sm:px-6">
-      {/* Mobile menu trigger */}
-      {mobileMenuButton}
+      <div className="flex items-center gap-1 sm:gap-2">
+        {/* Mobile menu trigger */}
+        {mobileMenuButton}
+        {/* Navigation Controls: Back, Forward, Home */}
+        <NavigationControls homeHref={workspace ? `/${workspace}/dashboard` : "/dashboard"} />
+      </div>
       {/* Left: Breadcrumbs */}
       <div className="flex items-center gap-1.5 min-w-0 max-w-[130px] xs:max-w-[180px] sm:max-w-none">
         {breadcrumbs && breadcrumbs.length > 0 ? (
@@ -247,7 +244,8 @@ export function Topbar({ title, breadcrumbs, mobileMenuButton }: TopbarProps) {
         {/* Language */}
         <LanguageSelector />
 
-        {/* Theme */}
+        {/* Theme: Quick Dark/Light Toggle + Palette Menu */}
+        <ThemeToggle />
         <ThemeMenu />
 
         {/* Divider */}

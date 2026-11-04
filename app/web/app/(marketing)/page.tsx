@@ -16,27 +16,27 @@ export const metadata: Metadata = constructMetadata({
   title: "Repsi — Gym Management Software for Gyms, Studios & Trainers",
   description:
     "Repsi is gym management software for gyms, fitness studios and personal trainers in India. Manage members, memberships, QR attendance, UPI payments, renewals, trainers, workouts and diet plans in one app. Plans from ₹199/month.",
-  keywords: ["best gym management software", "gym management app", "fitness center management software", "personal trainer management software"],
+  keywords: [
+    "best gym management software",
+    "gym management app",
+    "fitness center management software",
+    "personal trainer management software",
+  ],
   path: "/",
 });
 
 export default function MarketingLandingPage() {
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#191919] font-sans antialiased selection:bg-[#E25822] selection:text-white">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text)] font-sans antialiased selection:bg-[#E25822] selection:text-white">
       <JsonLd data={getWebsiteSchema()} />
       <JsonLd data={getFaqSchema(HOME_FAQS)} />
 
       <MarketingNav />
       <main>
-        {/* Hero — "You run your fitness business, we handle the rest." */}
         <ReferenceHero />
-        {/* Problems in fitness management */}
         <ProblemsSection />
-        {/* All REPSI features */}
         <FlexCarouselFeatures />
-        {/* Pricing preview → /pricing */}
         <PricingPreviewSection />
-        {/* Factual Q&A for searchers and answer engines (mirrored in FAQPage JSON-LD) */}
         <HomeFaqSection />
         <FinalCtaSection />
       </main>

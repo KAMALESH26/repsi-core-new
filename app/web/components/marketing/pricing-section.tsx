@@ -105,7 +105,7 @@ export function PricingSection() {
   ];
 
   return (
-    <div className="w-full bg-[#FAF9F6] text-[#191919] font-sans antialiased">
+    <div className="w-full bg-[var(--background)] text-[var(--text)] font-sans antialiased">
       {/* ───────────────────────────────────────────────────────────── */}
       {/* 1. HERO SECTION                                               */}
       {/* ───────────────────────────────────────────────────────────── */}

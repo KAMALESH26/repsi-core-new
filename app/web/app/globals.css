@@ -156,6 +156,69 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
 }
 
+/* ─────────────────────────────────────────────────────────────────── */
+/* Global Dark Mode Mapping for Marketing, Pricing & Download Elements  */
+/* ─────────────────────────────────────────────────────────────────── */
+html.dark,
+html.dark body {
+  background-color: var(--background) !important;
+  color: var(--text) !important;
+}
+
+html.dark .bg-\[\#FAF9F6\],
+html.dark .bg-\[\#FAF8F5\],
+html.dark .bg-\[\#F7F7F5\],
+html.dark [class*="from-[#F7F7F5]"],
+html.dark [class*="via-[#F7F7F5]"] {
+  background-color: var(--background) !important;
+  background-image: none !important;
+}
+
+html.dark .text-\[\#191919\],
+html.dark .text-\[\#17191C\] {
+  color: var(--text) !important;
+}
+
+html.dark .text-\[\#62666D\],
+html.dark .text-\[\#858890\],
+html.dark .text-\[\#6B6F76\],
+html.dark .text-zinc-600 {
+  color: var(--text-muted) !important;
+}
+
+html.dark .border-\[\#E7E4DE\],
+html.dark .border-\[\#E7E4DE\]\/60,
+html.dark .border-\[\#F0EDE7\],
+html.dark .border-\[\#E4E2DC\],
+html.dark .border-\[\#D1CDC7\] {
+  border-color: var(--border) !important;
+}
+
+html.dark .bg-white:not([data-keep-white]):not([role="dialog"] *),
+html.dark .bg-white\/98,
+html.dark .bg-white\/95,
+html.dark .bg-white\/80 {
+  background-color: var(--surface) !important;
+}
+
+html.dark .hover\:bg-\[\#FAF9F6\]:hover,
+html.dark .hover\:bg-\[\#F5F2ED\]:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+html.dark .hover\:text-\[\#191919\]:hover,
+html.dark .hover\:text-\[\#17191C\]:hover {
+  color: var(--text) !important;
+}
+
+html.dark .bg-\[\#FDF1EB\] {
+  background-color: var(--primary-soft) !important;
+}
+
+html.dark .border-\[\#FACBB7\] {
+  border-color: rgba(226, 88, 34, 0.3) !important;
+}
+
 /* Force light theme for .light scope even inside html.dark */
 .light,
 html.dark .light,
