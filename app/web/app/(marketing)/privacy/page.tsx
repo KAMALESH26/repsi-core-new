@@ -9,23 +9,23 @@ export const metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#17191C] pt-24 pb-20">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text)] pt-24 pb-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-[#6B6F76] hover:text-[#E25822] mb-8 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[#E25822] mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
         </Link>
 
-        <div className="bg-white rounded-3xl border border-[#E4E2DC] p-8 sm:p-12 shadow-xs space-y-8">
-          <div className="border-b border-[#E4E2DC] pb-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-[#E25822] bg-[#FDF1EB] mb-3">
+        <div className="bg-[var(--surface)] rounded-3xl border border-[var(--border)] p-8 sm:p-12 shadow-xs space-y-8">
+          <div className="border-b border-[var(--border)] pb-6">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-[#E25822] bg-[var(--primary-soft)] mb-3">
               <Shield className="w-3.5 h-3.5 text-[#E25822]" />
               Data Security & Privacy
             </span>
-            <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[#17191C]">
+            <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-[var(--text)]">
               Privacy Policy
             </h1>
             <p className="text-xs text-[#6B6F76] mt-2">

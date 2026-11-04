@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { navLabelKey, useTranslation } from "@/lib/i18n";
 import { LanguageSelector } from "@/components/language-selector";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function MarketingNav() {
   const pathname = usePathname();
@@ -100,18 +101,18 @@ export function MarketingNav() {
 
   const logoSrc = "/logos/logo-dark.png";
   const defaultLinkClass =
-    "text-[#191919] hover:text-[#E25822] transition-colors drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]";
-  const dropdownBg = "bg-white/98 backdrop-blur-xl border-[#E7E4DE] shadow-xl";
-  const dropdownItemText = "text-[#62666D] hover:text-[#191919] hover:bg-[#F5F2ED]";
+    "text-[var(--text)] hover:text-[#E25822] transition-colors";
+  const dropdownBg = "bg-[var(--surface)] backdrop-blur-xl border-[var(--border)] shadow-xl";
+  const dropdownItemText = "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)]";
 
   // Navbar background style:
   // Mobile (<md): fixed top bar with backdrop blur and border when scrolled
   // Desktop (md+): transparent on homepage hero, clean solid on subpages, never sticky
   const navBgClass = isHome
     ? scrolled
-      ? "bg-white/95 backdrop-blur-md border-b border-[#E7E4DE] shadow-xs md:bg-transparent md:backdrop-blur-none md:border-transparent md:shadow-none"
-      : "bg-white/80 backdrop-blur-md border-b border-[#E7E4DE]/60 md:bg-transparent md:backdrop-blur-none md:border-transparent md:shadow-none"
-    : "bg-[#FAF9F6]/95 backdrop-blur-md border-b border-[#E7E4DE] md:bg-[#FAF9F6] md:backdrop-blur-none md:shadow-none";
+      ? "bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-xs md:bg-transparent md:backdrop-blur-none md:border-transparent md:shadow-none"
+      : "bg-[var(--surface)]/80 backdrop-blur-md border-b border-[var(--border)]/60 md:bg-transparent md:backdrop-blur-none md:border-transparent md:shadow-none"
+    : "bg-[var(--surface)]/95 backdrop-blur-md border-b border-[var(--border)] md:bg-[var(--surface)] md:backdrop-blur-none md:shadow-none";
 
   // Position:
   // Mobile (<md): fixed top-0 (pinned to viewport as requested)
@@ -133,7 +134,7 @@ export function MarketingNav() {
               alt="REPSI"
               width={160}
               height={50}
-              className="h-7 sm:h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+              className="h-7 sm:h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02] dark:invert"
               priority
             />
           </Link>
@@ -178,8 +179,9 @@ export function MarketingNav() {
           </nav>
 
           {/* Desktop Auth & CTA */}
-          <div className="hidden sm:flex items-center gap-4 lg:gap-5">
+          <div className="hidden sm:flex items-center gap-3 lg:gap-4">
             <LanguageSelector showLabel={false} />
+            <ThemeToggle />
             <Link
               href="/login"
               className={`text-sm font-semibold py-2 transition-colors ${
@@ -285,7 +287,10 @@ export function MarketingNav() {
 
               {/* Bottom Actions */}
               <div className="p-4 sm:p-5 pt-3 border-t border-[#E7E4DE] flex flex-col gap-2 shrink-0 bg-[#FAF9F6]">
-                <LanguageSelector className="self-center" />
+                <div className="flex items-center justify-center gap-2">
+                  <LanguageSelector />
+                  <ThemeToggle />
+                </div>
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}

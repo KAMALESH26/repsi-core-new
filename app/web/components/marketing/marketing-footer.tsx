@@ -27,12 +27,12 @@ export function MarketingFooter() {
   }, []);
 
   return (
-    <footer className="relative bg-[#FAF9F6] text-[#191919] border-t border-[#E7E4DE] overflow-hidden pt-8 sm:pt-10 pb-5 sm:pb-6 font-sans">
+    <footer className="relative bg-[var(--surface)] text-[var(--text)] border-t border-[var(--border)] overflow-hidden pt-8 sm:pt-10 pb-5 sm:pb-6 font-sans">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-10">
         {/* ───────────────────────────────────────────────────────────── */}
         {/* 01. UPPER FOOTER: FOUR CLEAN COLUMNS                          */}
         {/* ───────────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-6 sm:pb-8 border-b border-[#E7E4DE]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-6 sm:pb-8 border-b border-[var(--border)]">
           {/* Brand Column (Spans 5 cols on lg) */}
           <div className="lg:col-span-5 space-y-4">
             <Link
@@ -44,7 +44,7 @@ export function MarketingFooter() {
                 alt="REPSI"
                 width={140}
                 height={42}
-                className="h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+                className="h-8 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02] dark:invert"
                 priority
               />
             </Link>

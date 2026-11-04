@@ -4,7 +4,7 @@ import { FadeIn } from "@/components/ui/fade-in";
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F7F7F5] via-[#F7F7F5] to-white text-[#17191C] font-sans antialiased flex flex-col">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text)] font-sans antialiased flex flex-col">
       <MarketingNav />
       
       <main className="flex-1 flex flex-col items-center justify-center py-32 px-6 text-center relative overflow-hidden">
@@ -15,10 +15,10 @@ export default function Page() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary-soft)] border border-[var(--primary)]/30 text-[var(--primary-dark)] text-xs font-bold tracking-wide uppercase mb-6 shadow-2xs mx-auto">
             <span>Coming Soon</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#17191C] mb-6">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[var(--text)] mb-6">
             Product Tour
           </h1>
-          <p className="text-lg sm:text-xl text-zinc-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-[var(--text-muted)] max-w-2xl mx-auto leading-relaxed">
             Take a deep dive into the features that power the best fitness businesses.
           </p>
         </FadeIn>

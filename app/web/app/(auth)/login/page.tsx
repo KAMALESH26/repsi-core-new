@@ -204,7 +204,7 @@ function LoginForm() {
               <div className="w-full border-t border-[var(--border)]" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-[#F7F9F8] px-3 text-[var(--text-muted)]">{t("login.or_sign_in_with")}</span>
+              <span className="bg-[var(--background)] px-3 text-[var(--text-muted)]">{t("login.or_sign_in_with")}</span>
             </div>
           </div>
 
@@ -288,6 +288,7 @@ function LoginForm() {
                   </button>
                 </div>
               </div>
+
               <SubmitButton loading={loading} label={t("auth.signIn")} />
             </form>
           ) : (
