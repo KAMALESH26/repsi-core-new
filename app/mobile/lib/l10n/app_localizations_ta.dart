@@ -4071,4 +4071,106 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get dietNonVegetarian => 'அசைவம்';
+
+  @override
+  String get chatReport => 'புகார்';
+
+  @override
+  String get chatReportMessage => 'செய்தியைப் புகாரளி';
+
+  @override
+  String get chatReportTitle => 'உரையாடலைப் புகாரளி';
+
+  @override
+  String get chatReportDesc =>
+      'உங்கள் ஜிம் உரிமையாளர் இதை மதிப்பாய்வு செய்வார். புகாரளித்தவர் யார் என்று மற்றவருக்குத் தெரிவிக்கப்படாது.';
+
+  @override
+  String get chatReportReason => 'என்ன பிரச்சனை?';
+
+  @override
+  String get chatReasonHarassment => 'துன்புறுத்தல் அல்லது மிரட்டல்';
+
+  @override
+  String get chatReasonInappropriate => 'பொருத்தமற்ற உள்ளடக்கம்';
+
+  @override
+  String get chatReasonOffTopic => 'தேவையற்ற தனிப்பட்ட செய்திகள்';
+
+  @override
+  String get chatReasonSpam => 'ஸ்பேம் அல்லது விற்பனை';
+
+  @override
+  String get chatReasonSafety => 'பாதுகாப்பற்ற பயிற்சி அல்லது உடல்நல ஆலோசனை';
+
+  @override
+  String get chatReasonOther => 'வேறு ஏதாவது';
+
+  @override
+  String get chatReportDetails => 'விவரங்கள் (விருப்பம்)';
+
+  @override
+  String get chatReportSend => 'புகாரை அனுப்பு';
+
+  @override
+  String get chatReportSent => 'புகார் ஜிம் உரிமையாளருக்கு அனுப்பப்பட்டது.';
+
+  @override
+  String get dietBuildTitle => 'என் உணவுத் திட்டம் உருவாக்கு';
+
+  @override
+  String get dietFoodPreference => 'உணவு விருப்பம்';
+
+  @override
+  String get dietTypeVegetarian => 'சைவம்';
+
+  @override
+  String get dietTypeEggetarian => 'முட்டை + சைவம்';
+
+  @override
+  String get dietTypeNonVeg => 'அசைவம்';
+
+  @override
+  String get dietTypeVegan => 'வீகன்';
+
+  @override
+  String get dietFoodsYouHave => 'வீட்டில் உள்ள உணவுகள்';
+
+  @override
+  String get dietGoal => 'இலக்கு';
+
+  @override
+  String get dietWeightKg => 'உடல் எடை (கிலோ)';
+
+  @override
+  String get dietMealsPerDay => 'ஒரு நாளுக்கு உணவுகள்';
+
+  @override
+  String get dietAvoid => 'ஒவ்வாமை அல்லது தவிர்க்க வேண்டிய உணவுகள் (விருப்பம்)';
+
+  @override
+  String get dietSuggest => 'திட்டம் பரிந்துரை';
+
+  @override
+  String get dietAskTrainer => 'பயிற்சியாளரிடம் திட்டம் கேள்';
+
+  @override
+  String get dietUseThisPlan => 'இதை என் திட்டமாகப் பயன்படுத்து';
+
+  @override
+  String get dietPersonaliseAi => 'AI மூலம் தனிப்பயனாக்கு';
+
+  @override
+  String get dietNowFollowing => 'இது இப்போது உங்கள் உணவுத் திட்டம்.';
+
+  @override
+  String get dietTrainerAsked =>
+      'உங்கள் பயிற்சியாளருக்கு அனுப்பப்பட்டது. உங்கள் உணவுகளுக்கு ஏற்ற திட்டத்தை அவர் வழங்குவார்.';
+
+  @override
+  String get dietNoTrainer =>
+      'சேமிக்கப்பட்டது. உங்களுக்கு இன்னும் பயிற்சியாளர் இல்லை — ஜிம் ஒருவரை நியமிக்கலாம்.';
+
+  @override
+  String get dietEnterWeight => 'பரிந்துரை பெற உங்கள் எடையை உள்ளிடவும்.';
 }

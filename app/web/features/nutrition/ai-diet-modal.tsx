@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Sparkles, Loader2, CheckCircle2, AlertCircle, Utensils, Flame, Dumbbell, ShieldCheck, HeartPulse } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sparkles, Loader2, CheckCircle2, AlertCircle, Utensils, Flame, Dumbbell, ShieldCheck, HeartPulse, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Modal, Notice, Field, inputClass } from "@/features/fitness/shared";
@@ -17,7 +17,8 @@ interface AiDietModalProps {
 
 export function AiDietModal({ memberId, workoutTitle, onClose, onAssigned }: AiDietModalProps) {
   const [goal, setGoal] = useState("muscle_gain");
-  const [dietType, setDietType] = useState("non_veg");
+  const [dietType, setDietType] = useState("non_vegetarian");
+  const [ingredients, setIngredients] = useState<string[]>([]);
   const [mealsPerDay, setMealsPerDay] = useState(4);
   const [weightKg, setWeightKg] = useState(70);
   const [workoutFocus, setWorkoutFocus] = useState(workoutTitle || "Chest Hypertrophy & Upper Body");
@@ -27,6 +28,17 @@ export function AiDietModal({ memberId, workoutTitle, onClose, onAssigned }: AiD
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestedPlan, setSuggestedPlan] = useState<any | null>(null);
+  // Start from what the member told us they eat and have at home.
+  useEffect(() => {
+    if (!memberId) return;
+    repsiApi.getDietPreferences(memberId).then((p) => {
+      if (!p) return;
+      setDietType(p.diet_type);
+      setIngredients(p.ingredients);
+      if (p.goal) setGoal(p.goal);
+      if (p.notes) setAllergies(p.notes);
+    }).catch(() => {});
+  }, [memberId]);
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -37,8 +49,8 @@ export function AiDietModal({ memberId, workoutTitle, onClose, onAssigned }: AiD
         diet_type: dietType,
         meals_per_day: mealsPerDay,
         weight_kg: Number(weightKg) || 70,
-        workout_context: workoutFocus || workoutTitle || "General Training",
-        notes: allergies.trim() || undefined,
+        ingredients,
+        notes: [allergies.trim(), workoutFocus ? `Training focus: ${workoutFocus}` : ""].filter(Boolean).join(". ") || undefined,
       };
       const res = await aiApi.suggestDiet(answers, useAi);
       if (res.plan) {
@@ -132,11 +144,10 @@ export function AiDietModal({ memberId, workoutTitle, onClose, onAssigned }: AiD
                   value={dietType}
                   onChange={(e) => setDietType(e.target.value)}
                 >
-                  <option value="non_veg">Non-Vegetarian (Chicken, Fish, Eggs)</option>
+                  <option value="non_vegetarian">Non-Vegetarian (Chicken, Fish, Eggs)</option>
                   <option value="vegetarian">Vegetarian (Paneer, Pulses, Dairy)</option>
                   <option value="eggetarian">Eggetarian (Vegetarian + Eggs)</option>
                   <option value="vegan">100% Plant-Based / Vegan</option>
-                  <option value="keto">High-Protein Keto / Low Carb</option>
                 </select>
               </Field>
             </div>
@@ -205,7 +216,7 @@ export function AiDietModal({ memberId, workoutTitle, onClose, onAssigned }: AiD
                 />
                 <div>
                   <span className="font-semibold text-[var(--text)] flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <BrainCircuit className="w-3.5 h-3.5 text-amber-500" />
                     AI Deep Macro Personalization
                   </span>
                   <p className="text-[10px] text-[var(--text-muted)]">Balances protein/carb ratios based on weight ({weightKg}kg) and target focus</p>
@@ -225,7 +236,7 @@ export function AiDietModal({ memberId, workoutTitle, onClose, onAssigned }: AiD
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4" />
+                  <BrainCircuit className="w-4 h-4" />
                   <span>Generate AI Diet Plan</span>
                 </>
               )}

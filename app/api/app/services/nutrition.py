@@ -18,7 +18,8 @@ from app.core.audit import record_audit
 from app.middleware.tenant import TenantContext
 from app.models.member import Member
 from app.models.nutrition import (
-    ChatMessage, Conversation, DietAssignment, DietPlan, DietPlanVersion, MealLog, WaterLog,
+    ChatMessage, ChatReport, ChatReportEvent, Conversation, DietAssignment, DietPlan, DietPlanVersion, DietPreference,
+    MealLog, WaterLog,
 )
 from app.models.trainer import Trainer, TrainerClient, TrainerClientStatus
 from app.services.fitness import FitnessActor
@@ -96,7 +97,8 @@ class NutritionService:
 
     def list_plans(self, search: Optional[str] = None, include_archived: bool = False) -> list:
         self.actor.require_staff()
-        q = self.db.query(DietPlan).filter(DietPlan.workspace_id == self.ws)
+        # Members' personal plans are theirs, not part of the gym's reusable library.
+        q = self.db.query(DietPlan).filter(DietPlan.workspace_id == self.ws, DietPlan.owner_member_id.is_(None))
         if not include_archived:
             q = q.filter(DietPlan.status == "active")
         if search:
@@ -175,6 +177,8 @@ class NutritionService:
         self.actor.require("nutrition.assign", "You don't have permission to assign diet plans.")
         member = self.actor.member_for(member_id)
         p = self._plan(data.plan_id)
+        if p.owner_member_id and p.owner_member_id != member.id:
+            raise HTTPException(status_code=409, detail="That is another member's personal plan.")
         if p.status != "active" or not p.current_version_id:
             raise HTTPException(status_code=409, detail="Only active diet plans can be assigned.")
         start = data.start_date or self.today()
@@ -224,6 +228,86 @@ class NutritionService:
             DietAssignment.workspace_id == self.ws, DietAssignment.member_id == mid,
         ).order_by(DietAssignment.start_date.desc(), DietAssignment.created_at.desc()).all()
         return [self.assignment_out(a) for a in rows]
+
+    # ------------------------------------------------------- member self-service
+
+    def _require_member(self):
+        if self.actor.kind != "member":
+            raise HTTPException(status_code=403, detail="Only members can do this for themselves.")
+        return self.actor.member
+
+    @staticmethod
+    def preference_out(p: Optional[DietPreference]) -> Optional[dict]:
+        if not p:
+            return None
+        return {"id": p.id, "member_id": p.member_id, "diet_type": p.diet_type, "goal": p.goal,
+                "ingredients": json.loads(p.ingredients or "[]"), "notes": p.notes,
+                "asked_trainer": bool(p.asked_trainer), "created_at": p.created_at}
+
+    def preferences(self, member_id: Optional[str]) -> Optional[dict]:
+        """The member's latest food preferences (members: their own; staff: an accessible member's)."""
+        mid = self._member_id(member_id)
+        p = self.db.query(DietPreference).filter(
+            DietPreference.workspace_id == self.ws, DietPreference.member_id == mid,
+        ).order_by(DietPreference.created_at.desc()).first()
+        return self.preference_out(p)
+
+    def save_preferences(self, data) -> dict:
+        """Appends the member's preferences; with ask_trainer, notifies their active trainers."""
+        from app.models.system import Notification
+        from app.services.ai_features import INGREDIENTS, _DIET_ALLOWS
+
+        member = self._require_member()
+        unknown = [k for k in data.ingredients if k not in INGREDIENTS]
+        if unknown:
+            raise HTTPException(status_code=422, detail="Unknown ingredient.")
+        ingredients = [k for k in dict.fromkeys(data.ingredients) if INGREDIENTS[k][1] in _DIET_ALLOWS[data.diet_type]]
+        p = DietPreference(workspace_id=self.ws, member_id=member.id, diet_type=data.diet_type, goal=data.goal,
+                           ingredients=json.dumps(ingredients), notes=(data.notes or "").strip() or None,
+                           asked_trainer=data.ask_trainer, created_by_user_id=self.tenant.user_id)
+        self.db.add(p)
+        self.db.flush()
+        notified = 0
+        if data.ask_trainer:
+            rows = self.db.query(Trainer.user_id).join(TrainerClient, TrainerClient.trainer_id == Trainer.id).filter(
+                TrainerClient.workspace_id == self.ws, TrainerClient.client_id == member.id,
+                TrainerClient.status == TrainerClientStatus.ACTIVE,
+            ).all()
+            name = f"{member.first_name} {member.last_name or ''}".strip()
+            food = data.diet_type.replace("_", "-")
+            for (uid,) in rows:
+                if uid:
+                    self.db.add(Notification(
+                        workspace_id=self.ws, user_id=uid, title="Diet plan requested",
+                        message=f"{name} asked for a {food} diet plan using the foods they have.",
+                        action_url=f"/trainer/clients/{member.id}", is_read=False))
+                    notified += 1
+        self.db.commit()
+        return {**self.preference_out(p), "trainers_notified": notified}
+
+    def choose_own_plan(self, data) -> dict:
+        """A member saves a plan for themselves (e.g. a suggested one) and starts following it.
+        It's a personal plan (owner_member_id), so it never appears in the gym's plan library."""
+        member = self._require_member()
+        p = DietPlan(workspace_id=self.ws, name=data.name.strip(), goal=data.goal, diet_type=data.diet_type,
+                     created_by_user_id=self.tenant.user_id, owner_member_id=member.id)
+        self.db.add(p)
+        self.db.flush()
+        v = self._add_version(p, data)
+        start = self.today()
+        for prev in self.db.query(DietAssignment).filter(
+            DietAssignment.workspace_id == self.ws, DietAssignment.member_id == member.id,
+            DietAssignment.status == "active",
+        ).with_for_update().all():
+            prev.status, prev.ended_on = "ended", start
+        a = DietAssignment(workspace_id=self.ws, member_id=member.id, plan_id=p.id, version_id=v.id, title=p.name,
+                           assigned_by_user_id=self.tenant.user_id, start_date=start, notes="Chosen by the member")
+        self.db.add(a)
+        self.db.flush()
+        record_audit(self.db, self.ws, self.tenant.user_id, "diet_plan.self_assigned", resource_type="diet_assignment",
+                     resource_id=a.id, details={"plan_id": p.id})
+        self.db.commit()
+        return self.assignment_out(a)
 
     def _active_assignment(self, member_id: str) -> Optional[DietAssignment]:
         return self.db.query(DietAssignment).filter(
@@ -467,3 +551,160 @@ class ChatService:
         ).update({ChatMessage.read_at: utcnow()}, synchronize_session=False)
         self.db.commit()
         return self._out(c)
+
+
+REPORT_REASONS = ("harassment", "inappropriate", "spam", "off_topic", "safety", "other")
+REPORT_STATUSES = ("open", "reviewing", "resolved", "dismissed")
+REVIEWER_ROLES = {"OWNER", "ADMIN", "MANAGER"}
+MAX_REPORTS_PER_DAY = 10
+
+
+class ChatReportService:
+    """Members and trainers report a conversation; owners/admins/managers review it.
+
+    Reviewers never browse chats freely: they can read a conversation only through a report on it.
+    """
+
+    def __init__(self, db: Session, tenant: TenantContext):
+        self.db = db
+        self.tenant = tenant
+        self.ws = tenant.workspace_id
+
+    # -- filing (member / trainer)
+    def file(self, conversation_id: str, data) -> dict:
+        chat = ChatService(self.db, self.tenant)  # only participants get past this
+        c = chat._conversation(conversation_id)
+        if data.reason not in REPORT_REASONS:
+            raise HTTPException(status_code=422, detail="Choose a reason for the report.")
+        excerpt = None
+        if data.message_id:
+            m = self.db.query(ChatMessage).filter(
+                ChatMessage.workspace_id == self.ws, ChatMessage.conversation_id == c.id,
+                ChatMessage.id == data.message_id).first()
+            if not m:
+                raise HTTPException(status_code=404, detail="Message not found in this conversation.")
+            if m.sender_user_id == self.tenant.user_id:
+                raise HTTPException(status_code=422, detail="You cannot report your own message.")
+            excerpt = (m.body or "")[:1000] or None
+        # Abuse controls: one open report per conversation per reporter, and a daily cap.
+        open_dup = self.db.query(ChatReport.id).filter(
+            ChatReport.workspace_id == self.ws, ChatReport.conversation_id == c.id,
+            ChatReport.reporter_user_id == self.tenant.user_id, ChatReport.status.in_(("open", "reviewing")),
+        ).first()
+        if open_dup:
+            raise HTTPException(status_code=409, detail="You already reported this conversation. The gym is reviewing it.")
+        since = utcnow() - timedelta(days=1)
+        recent = self.db.query(func.count(ChatReport.id)).filter(
+            ChatReport.workspace_id == self.ws, ChatReport.reporter_user_id == self.tenant.user_id,
+            ChatReport.created_at >= since).scalar() or 0
+        if recent >= MAX_REPORTS_PER_DAY:
+            raise HTTPException(status_code=429, detail="Too many reports today. Please contact the gym directly.")
+
+        kind = chat.actor.kind
+        r = ChatReport(workspace_id=self.ws, conversation_id=c.id, message_id=data.message_id, message_excerpt=excerpt,
+                       reporter_user_id=self.tenant.user_id, reporter_kind=kind,
+                       reported_kind="member" if kind == "trainer" else "trainer", reason=data.reason,
+                       details=(data.details or "").strip()[:2000] or None, status="open")
+        self.db.add(r)
+        self.db.flush()
+        self.db.add(ChatReportEvent(workspace_id=self.ws, report_id=r.id, actor_user_id=self.tenant.user_id,
+                                    from_status=None, to_status="open"))
+        record_audit(self.db, self.ws, self.tenant.user_id, "chat_report.filed", resource_type="chat_report",
+                     resource_id=r.id, details={"conversation_id": c.id, "reason": r.reason})
+        self._notify_reviewers(r)
+        self.db.commit()
+        return {"id": r.id, "status": r.status, "created_at": r.created_at}
+
+    def _notify_reviewers(self, r: ChatReport) -> None:
+        from app.models.system import Notification
+        from app.models.user import UserRole, WorkspaceMember
+        reviewers = self.db.query(WorkspaceMember.user_id).filter(
+            WorkspaceMember.workspace_id == self.ws, WorkspaceMember.is_active.is_(True),
+            WorkspaceMember.role.in_((UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER))).all()
+        who = "A trainer" if r.reporter_kind == "trainer" else "A member"
+        reason = r.reason.replace("_", " ")
+        for (uid,) in reviewers:
+            self.db.add(Notification(workspace_id=self.ws, user_id=uid, title="Chat reported",
+                                     message=f"{who} reported a conversation ({reason}). Please review it.",
+                                     action_url=f"/chat/reports?report={r.id}", is_read=False))
+
+    # -- review (owner / admin / manager)
+    def _require_reviewer(self) -> None:
+        if self.tenant.role not in REVIEWER_ROLES:
+            raise HTTPException(status_code=403, detail="Only the gym's owner, admins and managers can review chat reports.")
+
+    def _get(self, report_id: str) -> ChatReport:
+        r = self.db.query(ChatReport).filter(ChatReport.workspace_id == self.ws, ChatReport.id == report_id).first()
+        if not r:
+            raise HTTPException(status_code=404, detail="Report not found.")
+        return r
+
+    def _out(self, r: ChatReport) -> dict:
+        c = self.db.query(Conversation).filter(Conversation.id == r.conversation_id).first()
+        member = self.db.query(Member).filter(Member.id == c.member_id).first() if c else None
+        trainer = self.db.query(Trainer).filter(Trainer.id == c.trainer_id).first() if c else None
+        member_name = f"{member.first_name} {member.last_name or ''}".strip() if member else ""
+        trainer_name = trainer.name if trainer else ""
+        return {
+            "id": r.id, "conversation_id": r.conversation_id, "message_id": r.message_id,
+            "message_excerpt": r.message_excerpt, "reason": r.reason, "details": r.details, "status": r.status,
+            "reporter_kind": r.reporter_kind, "reported_kind": r.reported_kind,
+            "reporter_name": trainer_name if r.reporter_kind == "trainer" else member_name,
+            "reported_name": trainer_name if r.reported_kind == "trainer" else member_name,
+            "member_id": c.member_id if c else None, "trainer_id": c.trainer_id if c else None,
+            "resolution_note": r.resolution_note, "reviewed_at": r.reviewed_at, "created_at": r.created_at,
+        }
+
+    def list(self, status: Optional[str] = None) -> list:
+        self._require_reviewer()
+        q = self.db.query(ChatReport).filter(ChatReport.workspace_id == self.ws)
+        if status:
+            q = q.filter(ChatReport.status == status)
+        return [self._out(r) for r in q.order_by(ChatReport.created_at.desc()).limit(200).all()]
+
+    def detail(self, report_id: str) -> dict:
+        self._require_reviewer()
+        r = self._get(report_id)
+        # Context: the 30 messages up to (and including) the reported one, or the latest 30.
+        q = self.db.query(ChatMessage).filter(ChatMessage.workspace_id == self.ws,
+                                              ChatMessage.conversation_id == r.conversation_id)
+        if r.message_id:
+            anchor = q.filter(ChatMessage.id == r.message_id).first()
+            if anchor:
+                q = q.filter(ChatMessage.created_at <= anchor.created_at)
+        rows = list(reversed(q.order_by(ChatMessage.created_at.desc()).limit(30).all()))
+        events = self.db.query(ChatReportEvent).filter(ChatReportEvent.report_id == r.id).order_by(
+            ChatReportEvent.created_at).all()
+        record_audit(self.db, self.ws, self.tenant.user_id, "chat_report.viewed", resource_type="chat_report",
+                     resource_id=r.id)
+        self.db.commit()
+        return {**self._out(r), "messages": [ChatService.message_out(m) for m in rows],
+                "events": [{"from_status": e.from_status, "to_status": e.to_status, "note": e.note,
+                            "created_at": e.created_at} for e in events]}
+
+    def update(self, report_id: str, status: str, note: Optional[str]) -> dict:
+        self._require_reviewer()
+        if status not in REPORT_STATUSES:
+            raise HTTPException(status_code=422, detail="Unknown report status.")
+        r = self._get(report_id)
+        note = (note or "").strip()[:2000] or None
+        if status == r.status and not note:
+            return self._out(r)
+        self.db.add(ChatReportEvent(workspace_id=self.ws, report_id=r.id, actor_user_id=self.tenant.user_id,
+                                    from_status=r.status, to_status=status, note=note))
+        r.status = status
+        if note:
+            r.resolution_note = note
+        r.reviewed_by_user_id, r.reviewed_at = self.tenant.user_id, utcnow()
+        record_audit(self.db, self.ws, self.tenant.user_id, f"chat_report.{status}", resource_type="chat_report",
+                     resource_id=r.id)
+        self.db.commit()
+        return self._out(r)
+
+    def mine(self) -> list:
+        """The caller's own reports (status only), so a reporter can see the gym acted."""
+        rows = self.db.query(ChatReport).filter(ChatReport.workspace_id == self.ws,
+                                                ChatReport.reporter_user_id == self.tenant.user_id).order_by(
+            ChatReport.created_at.desc()).limit(50).all()
+        return [{"id": r.id, "conversation_id": r.conversation_id, "reason": r.reason, "status": r.status,
+                 "created_at": r.created_at} for r in rows]

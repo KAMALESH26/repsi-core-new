@@ -4012,4 +4012,106 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get dietNonVegetarian => 'मांसाहारी';
+
+  @override
+  String get chatReport => 'रिपोर्ट';
+
+  @override
+  String get chatReportMessage => 'संदेश रिपोर्ट करें';
+
+  @override
+  String get chatReportTitle => 'बातचीत रिपोर्ट करें';
+
+  @override
+  String get chatReportDesc =>
+      'आपके जिम के मालिक इसकी समीक्षा करेंगे। दूसरे व्यक्ति को नहीं बताया जाएगा कि रिपोर्ट किसने की।';
+
+  @override
+  String get chatReportReason => 'क्या समस्या है?';
+
+  @override
+  String get chatReasonHarassment => 'उत्पीड़न या धमकाना';
+
+  @override
+  String get chatReasonInappropriate => 'अनुचित सामग्री';
+
+  @override
+  String get chatReasonOffTopic => 'अवांछित निजी संदेश';
+
+  @override
+  String get chatReasonSpam => 'स्पैम या बिक्री';
+
+  @override
+  String get chatReasonSafety => 'असुरक्षित ट्रेनिंग या स्वास्थ्य सलाह';
+
+  @override
+  String get chatReasonOther => 'कुछ और';
+
+  @override
+  String get chatReportDetails => 'विवरण (वैकल्पिक)';
+
+  @override
+  String get chatReportSend => 'रिपोर्ट भेजें';
+
+  @override
+  String get chatReportSent => 'रिपोर्ट जिम मालिक को भेज दी गई।';
+
+  @override
+  String get dietBuildTitle => 'मेरा डाइट बनाएं';
+
+  @override
+  String get dietFoodPreference => 'भोजन पसंद';
+
+  @override
+  String get dietTypeVegetarian => 'शाकाहारी';
+
+  @override
+  String get dietTypeEggetarian => 'अंडा + शाकाहारी';
+
+  @override
+  String get dietTypeNonVeg => 'मांसाहारी';
+
+  @override
+  String get dietTypeVegan => 'वीगन';
+
+  @override
+  String get dietFoodsYouHave => 'घर में उपलब्ध खाद्य पदार्थ';
+
+  @override
+  String get dietGoal => 'लक्ष्य';
+
+  @override
+  String get dietWeightKg => 'शरीर का वजन (किलो)';
+
+  @override
+  String get dietMealsPerDay => 'दिन में भोजन';
+
+  @override
+  String get dietAvoid => 'एलर्जी या परहेज़ वाले खाद्य (वैकल्पिक)';
+
+  @override
+  String get dietSuggest => 'प्लान सुझाएं';
+
+  @override
+  String get dietAskTrainer => 'ट्रेनर से प्लान मांगें';
+
+  @override
+  String get dietUseThisPlan => 'इसे मेरा प्लान बनाएं';
+
+  @override
+  String get dietPersonaliseAi => 'AI से पर्सनलाइज़ करें';
+
+  @override
+  String get dietNowFollowing => 'अब यह आपका डाइट प्लान है।';
+
+  @override
+  String get dietTrainerAsked =>
+      'आपके ट्रेनर को भेज दिया गया। वे आपके खाने के अनुसार प्लान देंगे।';
+
+  @override
+  String get dietNoTrainer =>
+      'सेव हो गया। अभी आपका कोई ट्रेनर नहीं है — जिम एक ट्रेनर दे सकता है।';
+
+  @override
+  String get dietEnterWeight => 'सुझाव पाने के लिए अपना वजन डालें।';
 }
